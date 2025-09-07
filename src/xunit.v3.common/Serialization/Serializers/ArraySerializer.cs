@@ -27,6 +27,20 @@ internal static class ArraySerializer
 			lowerBounds[i] = info.GetValue<int>(string.Format(CultureInfo.InvariantCulture, "lb{0}", i));
 		}
 
+		// Fast path for single-dimension, zero-based arrays
+		if (rank == 1 && lowerBounds[0] == 0)
+		{
+			var szArray = Array.CreateInstance(elementType, totalLength);
+			for (var i = 0; i < totalLength; i++)
+			{
+				var item = info.GetValue(string.Format(CultureInfo.InvariantCulture, "i{0}", i));
+				szArray.SetValue(item, i);
+			}
+
+			return szArray;
+		}
+
+		// General path for multi-dimensional or non-zero-bound arrays
 		var array = Array.CreateInstance(elementType, lengths, lowerBounds);
 
 		var indices = new int[rank];
